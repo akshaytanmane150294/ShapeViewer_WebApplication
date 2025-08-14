@@ -16,7 +16,7 @@ def import_data_from_csv(file_path):
             height_value = float(row['height']) if row['height'] else None
             radius_value = float(row['radius']) if row['radius'] else None
             length_value = float(row['length']) if row['length'] else None
-            width_value = float(row['width']) if row['width'] else None
+            width_value = float(row['width'].strip()) if row['width'].strip() else None
 
             obj = Prism(
                 designation=row['designation'],

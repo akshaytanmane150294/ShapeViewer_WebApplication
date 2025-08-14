@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import InstallPluginWithCADView
+# from .views import InstallPluginWithCADView
 
 urlpatterns = [
     path('', views.index),
@@ -11,5 +11,5 @@ urlpatterns = [
     
     path('<str:id>/cad/', views.prism_cad),
     
-    path("api/install-plugin/", InstallPluginWithCADView.as_view(), name="install_plugin"),
+    path("api/prisms/install-plugin/", views.install_plugin),
 ]

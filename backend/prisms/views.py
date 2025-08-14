@@ -10,9 +10,8 @@ from .utils import compute_surface_area_volume, get_cad_model_data
 import os
 import requests
 import importlib
-
+import pdb
 from django.conf import settings
-from rest_framework.views import APIView
 
 PLUGIN_DIR = os.path.join(settings.BASE_DIR, "plugins")
 
@@ -54,7 +53,7 @@ def compute_prism(request, id):
             # Fallback to plugin
             module_path = f"plugins.{prism_type}.compute_{prism_type}"
             compute_module = importlib.import_module(module_path)
-            result = compute_module.compute(vars(prism))
+            result = compute_module.compute_surface_area_volume(prism)
 
         return Response(result)
 
@@ -74,10 +73,10 @@ def prism_cad(request, id):
     prism_type = prism.prism_name.lower()
 
     try:
-        if prism_type in ['rectangular', 'cylinder']:
+        if prism_type in ['rectangular', 'cylinder','cone']:
             cad_data = get_cad_model_data(prism)
         else:
-            module_path = f"plugins.{prism_type}.get_cad_model"
+            module_path = f"plugins.{prism_type}.get_cad_model_data"
             cad_module = importlib.import_module(module_path)
             cad_data = cad_module.get_cad_model_data(prism)
 
@@ -94,48 +93,49 @@ def prism_cad(request, id):
         return Response({"error": str(e)}, status=500)
 
 
-class InstallPluginWithCADView(APIView):
-    def post(self, request):
-        github_urls = request.data.get("github_urls", [])
-        
-        if not github_urls or not isinstance(github_urls, list):
-            return Response({"error": "A list of GitHub URLs is required."}, status=400)
+@api_view(['POST'])
+def install_plugin(request):
+    pdb.set_trace()
+    github_urls = request.data.get("github_urls", [])
+    print(github_urls)
+    if not github_urls or not isinstance(github_urls, list):
+        return Response({"error": "A list of GitHub URLs is required."}, status=400)
 
-        try:
-            for url in github_urls:
-                if "raw.githubusercontent.com" not in url:
-                    return Response({"error": f"Invalid raw GitHub URL: {url}"}, status=400)
+    try:
+        for url in github_urls:
+            if "raw.githubusercontent.com" not in url:
+                return Response({"error": f"Invalid raw GitHub URL: {url}"}, status=400)
 
-                # Get file name and prism name
-                filename = url.split("/")[-1]
+            # Get file name and prism name
+            filename = url.split("/")[-1]
 
-                if os.path.exists(prism_dir) and os.listdir(prism_dir):
-                    return Response({"error": f"Plugin '{prism_name}' already exists."}, status=400)
-                
-                if not filename.endswith(".py"):
-                    return Response({"error": f"Unsupported file type: {filename}"}, status=400)
+            if os.path.exists(prism_dir) and os.listdir(prism_dir):
+                return Response({"error": f"Plugin '{prism_name}' already exists."}, status=400)
+            
+            if not filename.endswith(".py"):
+                return Response({"error": f"Unsupported file type: {filename}"}, status=400)
 
-                # Extract prism name from file like compute_cone.py → cone
-                if filename.startswith("compute_") or filename == "get_cad_model.py":
-                    prism_name = filename.replace("compute_", "").replace(".py", "") if filename.startswith("compute_") else url.split("/")[-2]
-                else:
-                    return Response({"error": f"Unexpected file: {filename}"}, status=400)
+            # Extract prism name from file like compute_cone.py → cone
+            if filename.startswith("compute_") or filename == "get_cad_model_data.py":
+                prism_name = filename.replace("compute_", "").replace(".py", "") if filename.startswith("compute_") else url.split("/")[-2]
+            else:
+                return Response({"error": f"Unexpected file: {filename}"}, status=400)
 
-                # Create prism directory
-                prism_dir = os.path.join(PLUGIN_ROOT, prism_name)
-                os.makedirs(prism_dir, exist_ok=True)
+            # Create prism directory
+            prism_dir = os.path.join(PLUGIN_ROOT, prism_name)
+            os.makedirs(prism_dir, exist_ok=True)
 
-                # Download and save file
-                response = requests.get(url)
-                if response.status_code != 200:
-                    return Response({"error": f"Failed to download: {url}"}, status=400)
+            # Download and save file
+            response = requests.get(url)
+            if response.status_code != 200:
+                return Response({"error": f"Failed to download: {url}"}, status=400)
 
-                file_path = os.path.join(prism_dir, filename)
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(response.text)
+            file_path = os.path.join(prism_dir, filename)
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(response.text)
 
-            return Response({"status": "success", "message": "All plugin files installed successfully."})
+        return Response({"status": "success", "message": "All plugin files installed successfully."})
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 

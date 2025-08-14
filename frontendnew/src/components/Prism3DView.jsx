@@ -28,6 +28,21 @@ function PrismMesh({ data }) {
         case 'cone':
             geometry = <coneGeometry args={[data.radius, data.height, 64]} />;
             break;
+
+        case 'triangular':
+            // 3-sided prism
+            geometry = <triangularGeometry args={[data.radius, data.radius, data.height, 3]} />;
+            break;
+
+        case 'pentagonal':
+            // 5-sided prism
+            geometry = <pentagonalGeometry args={[data.radius, data.radius, data.height, 5]} />;
+            break;
+
+        case 'hexagonal':
+            // 6-sided prism
+            geometry = <hexagonalGeometry args={[data.radius, data.radius, data.height, 6]} />;
+            break;
         default:
             console.error("Unsupported prism type:", type);
             return null;
