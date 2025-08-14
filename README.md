@@ -1,23 +1,6 @@
 # ShapeViewer_WebApplication
 Shape Viewer is a full-stack web app for visualizing 3D prism shapes using Three.js. If a shape isn't found locally, the backend fetches compute scripts from GitHub, processes them, and returns the model data for rendering. Easily extensible with new shape plugins.
 
-Got it ✅  
-I’ll turn your **Shape Viewer (Web Version)** description into a **highly polished, professional, and attractive GitHub README** — complete with sections, emojis, badges, tech stack icons, installation instructions, usage guide, and deployment notes.  
-
-Here’s the refined README:
-
----
-
-```markdown
-# 🧩 Shape Viewer (Web Version)
-
-[![Django](https://img.shields.io/badge/Django-REST%20Framework-green?logo=django&logoColor=white)](https://www.djangoproject.com/)
-[![React](https://img.shields.io/badge/Frontend-React.js-blue?logo=react&logoColor=white)](https://reactjs.org/)
-[![Three.js](https://img.shields.io/badge/3D-Three.js-black?logo=three.js&logoColor=white)](https://threejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.10-yellow?logo=python&logoColor=white)](https://www.python.org/)
-[![Node](https://img.shields.io/badge/Node.js-v22.18-green?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/license-MIT-red.svg)](LICENSE)
-
 ---
 
 ## 🌐 Overview
