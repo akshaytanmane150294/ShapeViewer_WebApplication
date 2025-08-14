@@ -101,20 +101,40 @@ The app can be deployed on:
 
 ## 📂 Project Structure
 ```
-shape-viewer-web/
-│
-├── backend/                 # Django backend (API & shape logic)
+Project Structure:
+
+my_prism_app/
+├── backend/
 │   ├── manage.py
-│   ├── requirements.txt
-│   └── ...
-│
-├── frontend/                # React frontend (Three.js rendering)
+│   ├── backend/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── prisms/
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── views.py
+│   │   ├── serializers.py
+│   │   └── urls.py
+│   └── plugins/
+│       └── cylinder_plugin/
+│           ├── __init__.py
+│           ├── models.py
+│           └── ...
+├── frontend/
 │   ├── package.json
+│   ├── public/
 │   └── src/
-│
+│       ├── App.js
+│       ├── index.js
+│       ├── components/
+│       │   ├── PrismDropdown.js
+│       │   ├── PrismDetails.js
+│       │   └── Prism3DView.js
+├── README.md
+├── requirements.txt
 ├── .github/workflows/       # GitHub Actions CI/CD pipelines
-└── README.md
-```
+
 
 ---
 
