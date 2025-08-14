@@ -16,27 +16,25 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_USER: prismuser
+          POSTGRES_PASSWORD: prism123
+          POSTGRES_DB: prismdb
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready"
+          --health-cmd="pg_isready -U prismuser"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     env:
-      DATABASE_URL: postgres://prismuser:prism123@localhost:5432/prismdb
+      DATABASE_URL: postgres://prismuser:prism123@postgres:5432/prismdb
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # -------------------------
-      # Frontend Setup (React + Three.js)
-      # -------------------------
+      # Frontend
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -54,9 +52,7 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      # -------------------------
-      # Backend Setup (Django)
-      # -------------------------
+      # Backend
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -70,19 +66,12 @@ jobs:
 
       - name: Run Django migrations
         working-directory: ./backend
-        run: |
-          python manage.py migrate
+        run: python manage.py migrate
 
       - name: Run backend tests
         working-directory: ./backend
-        run: |
-          python manage.py test
+        run: python manage.py test
 
-      # -------------------------
-      # (Optional) Collect static files for deployment
-      # -------------------------
       - name: Collect static files
         working-directory: ./backend
-        run: |
-          python manage.py collectstatic --noinput
-
+        run: python manage.py collectstatic --noinput
