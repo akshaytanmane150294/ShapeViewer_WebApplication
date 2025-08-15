@@ -1,3 +1,9 @@
+import tempfile,subprocess,shutil  
+import os
+import requests
+import importlib
+import pdb
+from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import FileResponse
@@ -7,11 +13,6 @@ from .serializers import PrismSerializer
 from django.shortcuts import get_object_or_404
 from .utils import compute_surface_area_volume, get_cad_model_data
 
-import os
-import requests
-import importlib
-import pdb
-from django.conf import settings
 
 PLUGIN_DIR = os.path.join(settings.BASE_DIR, "plugins")
 
@@ -95,47 +96,53 @@ def prism_cad(request, id):
 
 @api_view(['POST'])
 def install_plugin(request):
-    pdb.set_trace()
     github_urls = request.data.get("github_urls", [])
-    print(github_urls)
     if not github_urls or not isinstance(github_urls, list):
         return Response({"error": "A list of GitHub URLs is required."}, status=400)
 
     try:
         for url in github_urls:
-            if "raw.githubusercontent.com" not in url:
-                return Response({"error": f"Invalid raw GitHub URL: {url}"}, status=400)
+            if not url.endswith(".git"):
+                return Response({"error": f"Invalid GitHub repo URL: {url}"}, status=400)
 
-            # Get file name and prism name
-            filename = url.split("/")[-1]
+            temp_dir = tempfile.mkdtemp()
+            try:
+                # Clone repo
+                subprocess.check_call(["git", "clone", url, temp_dir])
 
-            if os.path.exists(prism_dir) and os.listdir(prism_dir):
-                return Response({"error": f"Plugin '{prism_name}' already exists."}, status=400)
-            
-            if not filename.endswith(".py"):
-                return Response({"error": f"Unsupported file type: {filename}"}, status=400)
+                found_compute = None
+                found_cad = None
+                prism_name = None
 
-            # Extract prism name from file like compute_cone.py → cone
-            if filename.startswith("compute_") or filename == "get_cad_model_data.py":
-                prism_name = filename.replace("compute_", "").replace(".py", "") if filename.startswith("compute_") else url.split("/")[-2]
-            else:
-                return Response({"error": f"Unexpected file: {filename}"}, status=400)
+                # Search for compute_xxx.py and get_cad_model_data.py
+                for root, dirs, files in os.walk(temp_dir):
+                    for file in files:
+                        if file.startswith("compute_") and file.endswith(".py"):
+                            found_compute = os.path.join(root, file)
+                            prism_name = file.replace("compute_", "").replace(".py", "")
+                        elif file == "get_cad_model_data.py":
+                            found_cad = os.path.join(root, file)
 
-            # Create prism directory
-            prism_dir = os.path.join(PLUGIN_ROOT, prism_name)
-            os.makedirs(prism_dir, exist_ok=True)
+                if not found_compute or not found_cad or not prism_name:
+                    return Response({"error": f"Required plugin files not found in {url}"}, status=400)
 
-            # Download and save file
-            response = requests.get(url)
-            if response.status_code != 200:
-                return Response({"error": f"Failed to download: {url}"}, status=400)
+                # Make prism folder
+                prism_dir = os.path.join(PLUGIN_DIR, prism_name)
+                os.makedirs(prism_dir, exist_ok=True)
 
-            file_path = os.path.join(prism_dir, filename)
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(response.text)
+                # Copy both files to same folder
+                shutil.copy(found_compute, prism_dir)
+                shutil.copy(found_cad, prism_dir)
 
-        return Response({"status": "success", "message": "All plugin files installed successfully."})
+            finally:
+                shutil.rmtree(temp_dir)
 
+        return Response({"status": "success", "message": "Plugins installed successfully."})
+
+    except subprocess.CalledProcessError as e:
+        return Response({"error": f"Git clone failed: {str(e)}"}, status=500)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
 

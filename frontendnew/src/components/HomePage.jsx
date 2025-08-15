@@ -35,8 +35,26 @@ function HomePage() {
         const github_url = prompt("Enter raw GitHub plugin URL (e.g., compute_cone.py):");
         if (!github_url) return;
 
+
+        // await axios.post(
+        //     'http://localhost:8000/api/prisms/install_plugin/',
+        //     { github_urls: [github_url] }
+        // )
+        //     .then(response => {
+        //         console.log("✅ Success:", response.data);
+        //     })
+        //     .catch(error => {
+        //         if (error.response) {
+        //             console.error("❌ Server responded with error:", error.response.data);
+        //         } else if (error.request) {
+        //             console.error("❌ No response received:", error.request);
+        //         } else {
+        //             console.error("❌ Error setting up request:", error.message);
+        //         }
+        //     });
+
         try {
-            await axios.post('http://localhost:8000/api/prisms/install_plugin/', { github_url });
+            await axios.post('http://localhost:8000/api/prisms/install_plugin/', { github_urls: [github_url] });
             alert("✅ Plugin installed successfully!");
             setRefreshKey(prev => prev + 1);
         } catch (err) {
