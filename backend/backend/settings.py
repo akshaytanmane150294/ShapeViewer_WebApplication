@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'prisms',
     'rest_framework',
     'corsheaders',
-    'debug_toolbar',
+    
 ]
 
 MIDDLEWARE = [
